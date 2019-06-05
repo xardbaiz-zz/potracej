@@ -3,15 +3,18 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>uk.sannysanoff.potracej</groupId>
+	<groupId>kz.xardbaiz</groupId>
 	<artifactId>potracej</artifactId>
-	<version>1.10</version>
+	<version>1.11.0</version>
 	<packaging>jar</packaging>
 
 	<name>potracej</name>
-	<url>http://maven.apache.org</url>
+	<url>https://github.com/xardbaiz/portacej</url>
 
 	<properties>
+		<java.version>1.8</java.version>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -22,6 +25,19 @@
 			<version>3.8.1</version>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-svggen</artifactId>
+			<version>1.9</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-anim</artifactId>
+			<version>1.9</version>
+		</dependency>
+
 	</dependencies>
 
 

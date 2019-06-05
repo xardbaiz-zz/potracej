@@ -35,7 +35,7 @@ public class Main {
     
 	public static void main(String[] args) throws IOException {
 
-		sourceImage = ImageIO.read(inputStreamFromResource("girl.png"));
+		sourceImage = ImageIO.read(inputStreamFromResource("tracyng.png"));
 
 		// Toolkit.getDefaultToolkit().
 		WritableRaster raster = sourceImage.getRaster();
