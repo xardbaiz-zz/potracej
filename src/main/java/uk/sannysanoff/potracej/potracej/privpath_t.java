@@ -27,7 +27,11 @@ public class privpath_t {
         sb.append(" y0=" + x0);
         sb.append(" m=" + m);
         sb.append(" po=" + intArrayToString(po));
-        sb.append(" sums=" + Arrays.asList(sums));
+        if (sums!=null) {
+        	sb.append(" sums=" + Arrays.asList(sums));
+        } else {
+        	sb.append(" sums=[]");
+        }
         sb.append(" fcurve=" + fcurve);
         sb.append(" ocurve=" + ocurve);
         sb.append(" fcurve=" + fcurve);
@@ -38,9 +42,11 @@ public class privpath_t {
     public static String intArrayToString(int[] arr) {
         StringBuffer sb = new StringBuffer();
         sb.append("{");
-        for (int i = 0; i < arr.length; i++) {
-            sb.append(arr[i]);
-            sb.append(",");
+        if (arr!=null) {
+	        for (int i = 0; i < arr.length; i++) {
+	            sb.append(arr[i]);
+	            sb.append(",");
+	        }
         }
         sb.append("}");
         return sb.toString();

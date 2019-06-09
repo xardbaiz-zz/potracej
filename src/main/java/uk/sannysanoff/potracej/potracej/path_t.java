@@ -22,11 +22,11 @@ public class path_t {
 
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        sb.append("path{("+priv.pt.size()+" points):");
+        sb.append("path{(").append(priv.pt.size()).append(" points):");
         for (point_t point_t : priv.pt) {
-            sb.append(point_t.toString()+" ");
+            sb.append(point_t.toString()).append(" ");
         }
-        sb.append(", priv="+priv+"}");
+        sb.append(", priv=").append(priv).append("}");
         //sb.append(", \nnext="+next+"}");
         return sb.toString();
     }

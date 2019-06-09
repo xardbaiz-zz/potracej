@@ -1,5 +1,6 @@
 package kz.xardbaiz.potracej;
 
+import java.awt.Color;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
@@ -24,46 +25,52 @@ public class BitmapTracer {
 	// Copy logic from MAIN about tracing - done
 	// SAVE path to SVGPath - done
 	// TODO : export SVG document to String
-
 	public static SVGDocument toSVG(BufferedImage sourceImage) {
+		return toSVG(sourceImage, false);
+	}
+	
+	public static SVGDocument toSVG(BufferedImage sourceImage, boolean isIgnoreWhite) {
 		WritableRaster raster = sourceImage.getRaster();
 		int[] iarr = new int[4];
 		Bitmap bmp = new Bitmap((int) (sourceImage.getWidth()), (int) (sourceImage.getHeight()));
 		for (int y = 0; y < sourceImage.getHeight(); y++) {
 			for (int x = 0; x < sourceImage.getWidth(); x++) {
 				int[] pixel = raster.getPixel(x, y, iarr);
-				if (pixel[0] + pixel[1] + pixel[2] + pixel[3] != 0) {
+				
+				int red = pixel[0];
+                int green = pixel[1];
+                int blue = pixel[2];
+                int alpha = pixel[3];
+                
+                if (isIgnoreWhite && red >= 254 && red >= green && blue >= 254) {
+                    continue;
+                }
+				
+				if (red + green + blue + alpha != 0) {
 					bmp.put(x, y, 1);
 				}
 			}
 		}
+		
+		//System.out.println(bmp.toDebugString());
 
 		// Setting default (sharp) params
 		param_t param = new param_t();
-		param.opticurve = 0;
+		/*param.opticurve = 0;
 		param.opttolerance = 0;
 		param.turdsize = 0;
 
 		// TODO: calc alphamax (for rounded corners)
-		param.alphamax = 0;
+		param.alphamax = 0;*/
 
 		return doTrace(bmp, sourceImage.getWidth(), sourceImage.getHeight(), param, DEFAULT_SCALE);
 	}
 
 	private static SVGDocument doTrace(Bitmap bmp, int width, int height, param_t param, double scale) {
 		PoTraceJ poTraceJ = new PoTraceJ(param);
-		long l = System.currentTimeMillis();
 
-		path_t trace = null;
-		for (int i = 0; i < 10; i++) {
-			trace = poTraceJ.trace(bmp);
-			Thread.yield();
-		}
-		poTraceJ.resetTimers();
-		for (int i = 0; i < 100; i++) {
-			trace = poTraceJ.trace(bmp);
-		}
-		l = System.currentTimeMillis() - l;
+		path_t trace = poTraceJ.trace(bmp);
+		
 		ArrayList<PathElement> al = new ArrayList<PathElement>();
 		ConvertToJavaCurves.convert(trace, new HashSet<ConvertToJavaCurves.Point>(), al);
 

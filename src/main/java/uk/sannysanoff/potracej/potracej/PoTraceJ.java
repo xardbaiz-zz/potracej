@@ -2,6 +2,8 @@ package uk.sannysanoff.potracej.potracej;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import static uk.sannysanoff.potracej.potracej.Bitmap.BM_GET;
 
@@ -48,7 +50,18 @@ public class PoTraceJ {
     private void process_path(path_t paths) {
         path_t p = paths;
         long ol;
+        
+        Set<Integer> pathSet = new HashSet<>();
         while (p != null) {
+        	
+        	//Anti-infinite loop workaround
+        	int pathHashCode = p.hashCode();
+        	if (pathSet.contains(pathHashCode)) {
+        		//System.out.println("Already processed path! "+pathHashCode);
+        		break;
+        	}
+        	pathSet.add(pathHashCode);
+        	
             long l = System.currentTimeMillis();
             calc_sums(p.priv);
             ol = l; l = System.currentTimeMillis();
@@ -99,7 +112,6 @@ public class PoTraceJ {
             smooth(p.priv.curve, param.alphamax);
             ol = l; l = System.currentTimeMillis();
             times[7] += ol - l;
-
             p = p.next;
         }
     }
@@ -606,7 +618,7 @@ public class PoTraceJ {
         /* determine pivot points: for each i, let pivk[i] be the furthest k
            such that all j with i<j<k lie on a line connecting i,k. */
         int ct;
-        foundkloop:
+        
         for (i = n - 1; i >= 0; i--) {
             ct = 0; // ct[0] = ct[1] = ct[2] = ct[3] = 0;
 
@@ -623,7 +635,8 @@ public class PoTraceJ {
             /* find the next k such that no straight line from i to k */
             k = nc[i];
             k1 = i;
-constvioloop:
+            
+			boolean isSkipAfterWhile = false;
             while (true) {
                 //iter++;
                 int ptkx = pt[k].x;
@@ -636,7 +649,8 @@ constvioloop:
                 //if (ct[0] != 0 && ct[1] != 0 && ct[2] != 0 && ct[3] != 0) {
                 if (ct == 0xF) {
                     pivk[i] = k1;
-                    continue foundkloop;
+                    isSkipAfterWhile = true;
+                    break;
                 }
 
                 int curx = cur.x = ptkx - pt[i].x;
@@ -645,7 +659,7 @@ constvioloop:
                 /* see if current constraint is violated */
                 if (xprod(constraint0, cur) < 0 || xprod(constraint1, cur) > 0) {
                     //System.out.println("o!");
-                    break constvioloop;
+                    break;
                 }
 
                 /* else, update constraint */
@@ -671,32 +685,33 @@ constvioloop:
                     break;
                 }
             }
-            /* k1 was the last "corner" satisfying the current constraint, and
-     k is the first one violating it. We now need to find the last
-     point along k1..k which satisfied the constraint. */
-            dk.x = sign(pt[k].x - pt[k1].x);
-            dk.y = sign(pt[k].y - pt[k1].y);
-            cur.x = pt[k1].x - pt[i].x;
-            cur.y = pt[k1].y - pt[i].y;
-            /* find largest integer j such that xprod(constraint[0], cur+j*dk)
-          >= 0 and xprod(constraint[1], cur+j*dk) <= 0. Use bilinearity
-          of xprod. */
-            a = xprod(constraint0, cur);
-            b = xprod(constraint0, dk);
-            c = xprod(constraint1, cur);
-            d = xprod(constraint1, dk);
-            /* find largest integer j such that a+j*b>=0 and c+j*d<=0. This
-      can be solved with integer arithmetic. */
-            j = INFTY;
-            if (b < 0) {
-                j = floordiv(a, -b);
+            
+            if (!isSkipAfterWhile) {
+	            /* k1 was the last "corner" satisfying the current constraint, and
+	     k is the first one violating it. We now need to find the last
+	     point along k1..k which satisfied the constraint. */
+	            dk.x = sign(pt[k].x - pt[k1].x);
+	            dk.y = sign(pt[k].y - pt[k1].y);
+	            cur.x = pt[k1].x - pt[i].x;
+	            cur.y = pt[k1].y - pt[i].y;
+	            /* find largest integer j such that xprod(constraint[0], cur+j*dk)
+	          >= 0 and xprod(constraint[1], cur+j*dk) <= 0. Use bilinearity
+	          of xprod. */
+	            a = xprod(constraint0, cur);
+	            b = xprod(constraint0, dk);
+	            c = xprod(constraint1, cur);
+	            d = xprod(constraint1, dk);
+	            /* find largest integer j such that a+j*b>=0 and c+j*d<=0. This
+	      can be solved with integer arithmetic. */
+	            j = INFTY;
+	            if (b < 0) {
+	                j = floordiv(a, -b);
+	            }
+	            if (d > 0) {
+	                j = Math.min(j, floordiv(-c, d));
+	            }
+	            pivk[i] = mod(k1 + j, n);
             }
-            if (d > 0) {
-                j = Math.min(j, floordiv(-c, d));
-            }
-            pivk[i] = mod(k1 + j, n);
-            foundk:
-            ;
         } /* for i */
 
         /* clean up: for each i, let lon[i] be the largest k such that for
@@ -770,7 +785,7 @@ constvioloop:
                 paths.add(p);
             }
         }
-//        System.out.println("count="+count);
+        //System.out.println("count="+count);
         return pathlist_to_tree(paths, bm1);
     }
 
@@ -795,6 +810,7 @@ constvioloop:
         int iter = 0;
         bm.clear();
         path_t p;
+        
         if (paths.size() == 0) return null;
         for (int i = 0; i < paths.size(); i++) {
             p = paths.get(i);
@@ -802,6 +818,7 @@ constvioloop:
             p.next = p.sibling;
             p.childlist = null;
         }
+        
         path_t heap = paths.get(0);
         path_t cur = null;
         path_t head = null;
@@ -836,9 +853,10 @@ constvioloop:
                     cur = p.next;
                     p.next = null;
                 } else break;
-                //
+
                 //System.out.println("step1, iter="+(iter++));
                 //print_path(paths);
+                
                 if (p.priv.pt.get(0).y <= bbox.y0) {
                     nexts.addLast(p);
                     path_t headNextLast = find_last(head.next);
@@ -848,8 +866,10 @@ constvioloop:
                     } else {
                         head.next = p;
                     }
+                    
                     //System.out.println("step1, E0iter="+(iter++));
                     //print_path(paths);
+                    
                     find_last(head).next = cur;
                     // ext = cur;
                     //p.next = cur;
@@ -882,10 +902,13 @@ constvioloop:
             }
             /* clear bm */
             bm.clear_with_bbox(bbox);
+            
             /* now schedule head->childlist and head->next for further
            processing */
+            
             //System.out.println("step1, E1iter="+(iter++));
             //print_path(paths);
+            
 //            head.childlist = children.getValue();
 //            head.next = nexts.getValue();
             if (head.next != null) {
@@ -907,6 +930,7 @@ constvioloop:
             p.sibling = p.next;
             p = p1;
         }
+        
         /* reconstruct a new linked list ("next") structure from tree
        ("childlist", "sibling") structure. This code is slightly messy,
        because we use a heap to make it tail recursive: the heap
@@ -932,8 +956,10 @@ constvioloop:
                 } else {
                     plist = p;
                 }
-//                System.out.println("step2-0, iter="+(iter++));
-//                print_path(paths);
+                
+                //System.out.println("step2-0, iter="+(iter++));
+                //print_path(paths);
+                
                 /* go through its children */
                 for (path_t p1 = p.childlist; p1 != null; p1 = p1.sibling) {
                     /* append to linked list */
@@ -959,8 +985,7 @@ constvioloop:
             heap = heap1;
         }
 
-//        System.out.println("Final plist");
-//        print_path(paths);
+        //System.out.println("Final plist ready");
         return plist;
     }
 

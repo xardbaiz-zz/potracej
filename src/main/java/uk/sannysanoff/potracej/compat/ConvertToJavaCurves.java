@@ -5,6 +5,7 @@ import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 
 import uk.sannysanoff.potracej.potracej.curve_t;
 import uk.sannysanoff.potracej.potracej.dpoint_t;
@@ -64,8 +65,22 @@ public class ConvertToJavaCurves {
         path_t child;
 
         path_t node;
+        Set<Integer> nodeSet = new HashSet<>();
+        
         for (node = plist; node != null; node = node.next) {
+        	
+        	//Anti-infinite loop workaround
+        	int nodeHashCode = node.hashCode();
+        	if (nodeSet.contains(nodeHashCode)) {
+        		//System.out.println("Already processed node! "+nodeHashCode);
+        		break;
+        	}
+        	nodeSet.add(nodeHashCode);
+        	
             curve_t curve = node.curve;
+            
+            if (curve==null) continue;
+            
             //g_message("node->fm:%d\n", node->fm);
             if (curve.n == 0)
                 continue;
