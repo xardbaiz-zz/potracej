@@ -1,5 +1,6 @@
 package kz.xardbaiz.potracej.utils;
 
+import java.awt.Color;
 import java.awt.geom.GeneralPath;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,7 +19,7 @@ import org.w3c.dom.svg.SVGDocument;
 
 public class SVGUtils {
 
-	public static SVGDocument createSvgDocument(int width, int height) {
+	public static SVGDocument createSvgDocument(float width, float height) {
 		DOMImplementation domImpl = SVGDOMImplementation.getDOMImplementation();
 		SVGDocument document = (SVGDocument) domImpl.createDocument(SVGDOMImplementation.SVG_NAMESPACE_URI, "svg",
 				null);
@@ -29,14 +30,31 @@ public class SVGUtils {
 	}
 
 	public static void putPathToSvgDocument(SVGDocument document, GeneralPath path) {
+		putPathToSvgDocument(document, path, Color.BLACK, null);
+	}
+	
+	public static void putPathToSvgDocument(SVGDocument document, GeneralPath path, Color fillColor, Color strokeColor) {
+		
+		if (fillColor==null) {
+			return;
+		}
+		
 		SVGGeneratorContext ctx = SVGGeneratorContext.createDefault(document);
 
-		String pathData = SVGPath.toSVGPathData(path, ctx);
+		//String pathData = SVGPath.toSVGPathData(path, ctx);
 
 		SVGPath svgPath = new SVGPath(ctx);
 		Element svgElement = svgPath.toSVG(path);
-		svgElement.setAttribute("fill", "#000");
+		
+		svgElement.setAttribute("fill", getRgbColorString(fillColor));
+		
+		// TODO check for stroke
+		
 		document.getRootElement().appendChild(svgElement);
+	}
+	
+	private static String getRgbColorString(Color color) {
+		return String.format("rgb(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue());
 	}
 
 	public static void saveSvgDocumentToFile(SVGDocument document, File file)
