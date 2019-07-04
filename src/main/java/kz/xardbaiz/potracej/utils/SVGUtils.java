@@ -13,9 +13,12 @@ import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGeneratorContext;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGPath;
+import org.apache.batik.util.SVGConstants;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Element;
 import org.w3c.dom.svg.SVGDocument;
+
+import kz.xardbaiz.potracej.models.VectorFigure;
 
 public class SVGUtils {
 
@@ -30,29 +33,44 @@ public class SVGUtils {
 	}
 
 	public static void putPathToSvgDocument(SVGDocument document, GeneralPath path) {
-		putPathToSvgDocument(document, path, Color.BLACK, null);
+
+		putPathToSvgDocument(document, new VectorFigure(path, null, Color.BLACK));
 	}
-	
-	public static void putPathToSvgDocument(SVGDocument document, GeneralPath path, Color fillColor, Color strokeColor) {
-		
-		if (fillColor==null) {
+
+	public static void putPathToSvgDocument(SVGDocument document, VectorFigure figure) {
+
+		if (figure.getNonStrokingColor() == null) {
 			return;
 		}
-		
+
 		SVGGeneratorContext ctx = SVGGeneratorContext.createDefault(document);
 
-		//String pathData = SVGPath.toSVGPathData(path, ctx);
+		// System.out.println(SVGPath.toSVGPathData(path, ctx));
 
 		SVGPath svgPath = new SVGPath(ctx);
-		Element svgElement = svgPath.toSVG(path);
-		
-		svgElement.setAttribute("fill", getRgbColorString(fillColor));
-		
-		// TODO check for stroke
-		
+		Element svgElement = svgPath.toSVG(figure.getFigurePath());
+
+		svgElement.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, getRgbColorString(figure.getNonStrokingColor()));
+
+		// Stroke check
+		Color strokingColor = figure.getStrokingColor();
+		if (strokingColor != null) {
+			svgElement.setAttribute(SVGConstants.SVG_STROKE_ATTRIBUTE, getRgbColorString(strokingColor));
+			svgElement.setAttribute(SVGConstants.SVG_STROKE_WIDTH_ATTRIBUTE, String.valueOf(figure.getStrokeWidth()));
+			svgElement.setAttribute(SVGConstants.SVG_STROKE_LINECAP_ATTRIBUTE, figure.getLineCap());
+			svgElement.setAttribute(SVGConstants.SVG_STROKE_LINEJOIN_ATTRIBUTE, figure.getLineJoin());
+
+			String dashArray = figure.getDashArray();
+			if (dashArray != null) {
+				svgElement.setAttribute(SVGConstants.SVG_STROKE_DASHARRAY_ATTRIBUTE, dashArray);
+			}
+			
+			// TODO 'stroke-dashoffset'
+			// TODO opacity
+		}
 		document.getRootElement().appendChild(svgElement);
 	}
-	
+
 	private static String getRgbColorString(Color color) {
 		return String.format("rgb(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue());
 	}
