@@ -1,16 +1,14 @@
 package kz.xardbaiz.potracej;
 
-import java.awt.Color;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.svg.SVGDocument;
 
-import kz.xardbaiz.potracej.utils.SVGUtils;
+import kz.xardbaiz.svg.utils.SVGUtils;
 import uk.sannysanoff.potracej.compat.ConvertToJavaCurves;
 import uk.sannysanoff.potracej.compat.PathElement;
 import uk.sannysanoff.potracej.potracej.Bitmap;
